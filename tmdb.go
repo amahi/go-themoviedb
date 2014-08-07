@@ -3,7 +3,19 @@
 // license that can be found in the LICENSE file.
 
 // Golang library for requesting metadata from themoviedb.org
-
+// It's used by
+//
+// 1) Initializing the library via Init(), with the caller's API
+// key from http://www.themoviedb.org like
+//
+//         tmdb := Init("your-api-key")
+//
+// 2) Calling MovieData() to get the actual data, like
+//
+//         metadata, err := tmdb.MovieData("some movie name")
+//
+// the metadata is returned in XML format according to TMDB guidelines.
+//
 package tmdb
 
 import (
@@ -14,7 +26,7 @@ import (
 	"strconv"
 )
 
-const BASE_URL string = "http://api.themoviedb.org/3"
+const base_url string = "http://api.themoviedb.org/3"
 
 type TMDB struct {
 	api_key string
@@ -73,7 +85,7 @@ type imageConfig struct {
 	Still_sizes    []string
 }
 
-//Movie metadata structure
+// Movie metadata structure
 type movieMetadata struct {
 	Id            int
 	Media_type    string
@@ -106,8 +118,9 @@ type tmdbCrew struct {
 	Profile_path string
 }
 
-//The main call for getting movie data
-func (tmdb *TMDB) getMovieData(MediaName string) (string, error) {
+// The main call for getting movie data
+// MediaName is the name of the movie information to be retrieved
+func (tmdb *TMDB) MovieData(MediaName string) (string, error) {
 	var met string
 	results, err := tmdb.searchMovie(MediaName)
 	if err != nil {
@@ -148,7 +161,7 @@ func (tmdb *TMDB) getMovieData(MediaName string) (string, error) {
 
 //search on TMDb for TV, persons and Movies with a given name
 func (tmdb *TMDB) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
-	res, err := http.Get(BASE_URL + "/search/multi?api_key=" + tmdb.api_key + "&query=" + MediaName)
+	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
@@ -166,7 +179,7 @@ func (tmdb *TMDB) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
 
 //search on TMDb for Movies with a given name
 func (tmdb *TMDB) searchMovie(MediaName string) (tmdbResponse, error) {
-	res, err := http.Get(BASE_URL + "/search/movie?api_key=" + tmdb.api_key + "&query=" + MediaName)
+	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
@@ -184,7 +197,7 @@ func (tmdb *TMDB) searchMovie(MediaName string) (tmdbResponse, error) {
 
 //search on TMDb for Tv Shows with a given name
 func (tmdb *TMDB) searchTmdbTv(MediaName string) (tmdbResponse, error) {
-	res, err := http.Get(BASE_URL + "/search/tv?api_key=" + tmdb.api_key + "&query=" + MediaName)
+	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
@@ -203,7 +216,7 @@ func (tmdb *TMDB) searchTmdbTv(MediaName string) (tmdbResponse, error) {
 //get configurations from TMDb
 func (tmdb *TMDB) getConfig() (*tmdbConfig, error) {
 	if tmdb.config.Images.Base_url == "" {
-		res, err := http.Get(BASE_URL + "/configuration?api_key=" + tmdb.api_key)
+		res, err := http.Get(base_url + "/configuration?api_key=" + tmdb.api_key)
 		var conf = &tmdbConfig{}
 		if err != nil {
 			return conf, err
@@ -225,7 +238,7 @@ func (tmdb *TMDB) getConfig() (*tmdbConfig, error) {
 
 //get basic information for movie
 func (tmdb *TMDB) getMovieDetails(MediaId string) (movieMetadata, error) {
-	res, err := http.Get(BASE_URL + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
+	res, err := http.Get(base_url + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
 	if err != nil {
 		return met, err
@@ -242,8 +255,8 @@ func (tmdb *TMDB) getMovieDetails(MediaId string) (movieMetadata, error) {
 }
 
 //get credits for movie
-func (tmdb *TMDB) getMovieCredits(MediaId string) (tmdbCredits, error) {
-	res, err := http.Get(BASE_URL + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
+func (tmdb *TMDB) MovieCredits(MediaId string) (tmdbCredits, error) {
+	res, err := http.Get(base_url + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
 	if err != nil {
 		return cred, err
@@ -261,7 +274,7 @@ func (tmdb *TMDB) getMovieCredits(MediaId string) (tmdbCredits, error) {
 
 //get basic information for Tv
 func (tmdb *TMDB) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
-	res, err := http.Get(BASE_URL + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
+	res, err := http.Get(base_url + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
 	if err != nil {
 		return met, err
@@ -279,7 +292,7 @@ func (tmdb *TMDB) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 
 //get credits for Tv
 func (tmdb *TMDB) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
-	res, err := http.Get(BASE_URL + "/tv/" + MediaId + "/credits?api_key=" + tmdb.api_key)
+	res, err := http.Get(base_url + "/tv/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
 	if err != nil {
 		return cred, err
