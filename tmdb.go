@@ -30,10 +30,10 @@ const base_url string = "http://api.themoviedb.org/3"
 
 type TMDB struct {
 	api_key string
-	config *tmdbConfig
+	config  *tmdbConfig
 }
 
-func Init(api_key string) (* TMDB) {
+func Init(api_key string) *TMDB {
 	return &TMDB{api_key: api_key}
 }
 
@@ -255,7 +255,7 @@ func (tmdb *TMDB) getMovieDetails(MediaId string) (movieMetadata, error) {
 }
 
 //get credits for movie
-func (tmdb *TMDB) MovieCredits(MediaId string) (tmdbCredits, error) {
+func (tmdb *TMDB) getMovieCredits(MediaId string) (tmdbCredits, error) {
 	res, err := http.Get(base_url + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
 	if err != nil {
@@ -308,8 +308,9 @@ func (tmdb *TMDB) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 	return cred, nil
 }
 
-//filter out unwanted movie metadata before return to user
-func (tmdb *TMDB) filterMovieData(data string) (string, error) {
+// Transform the simplified movie metadata in JSON format
+// This output is rather arbitrary to our (Amahi's) needs and could be customized a little
+func (tmdb *TMDB) ToJSON(data string) (string, error) {
 	var f filtered_output
 	var det movieMetadata
 	err := json.Unmarshal([]byte(data), &det)
