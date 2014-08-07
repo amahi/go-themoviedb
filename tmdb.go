@@ -173,7 +173,7 @@ func (tmdb *TMDb) MovieData(MediaName string) (string, error) {
 	}
 }
 
-//search on TMDb for TV, persons and Movies with a given name
+// Search on TMDb for TV, persons and Movies with a given name
 func (tmdb *TMDb) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
 	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
@@ -191,7 +191,7 @@ func (tmdb *TMDb) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
 	return resp, nil
 }
 
-//search on TMDb for Movies with a given name
+// Search on TMDb for Movies with a given name
 func (tmdb *TMDb) searchMovie(MediaName string) (tmdbResponse, error) {
 	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
@@ -209,7 +209,7 @@ func (tmdb *TMDb) searchMovie(MediaName string) (tmdbResponse, error) {
 	return resp, nil
 }
 
-//search on TMDb for Tv Shows with a given name
+// Search on TMDb for Tv Shows with a given name
 func (tmdb *TMDb) searchTmdbTv(MediaName string) (tmdbResponse, error) {
 	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
@@ -227,9 +227,9 @@ func (tmdb *TMDb) searchTmdbTv(MediaName string) (tmdbResponse, error) {
 	return resp, nil
 }
 
-//get configurations from TMDb
+// Get configurations from TMDb
 func (tmdb *TMDb) getConfig() (*tmdbConfig, error) {
-	if tmdb.config.Images.Base_url == "" {
+	if tmdb.config == nil || tmdb.config.Images.Base_url == "" {
 		res, err := http.Get(base_url + "/configuration?api_key=" + tmdb.api_key)
 		var conf = &tmdbConfig{}
 		if err != nil {
@@ -250,7 +250,7 @@ func (tmdb *TMDb) getConfig() (*tmdbConfig, error) {
 	}
 }
 
-//get basic information for movie
+// Get basic information for movie
 func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
 	res, err := http.Get(base_url + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
@@ -268,7 +268,7 @@ func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
 	return met, nil
 }
 
-//get credits for movie
+// Get credits for movie
 func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
 	res, err := http.Get(base_url + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
@@ -286,7 +286,7 @@ func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
 	return cred, nil
 }
 
-//get basic information for Tv
+// Get basic information for Tv
 func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 	res, err := http.Get(base_url + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
@@ -304,7 +304,7 @@ func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 	return met, nil
 }
 
-//get credits for Tv
+// Get credits for Tv
 func (tmdb *TMDb) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 	res, err := http.Get(base_url + "/tv/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
