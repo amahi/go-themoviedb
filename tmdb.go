@@ -8,19 +8,33 @@
 // 1) Initializing the library via Init(), with the caller's API
 // key from http://www.themoviedb.org like
 //
-//         tmdb := Init("your-api-key")
-//
 // 2) Calling MovieData() to get the actual data, like
 //
-//         metadata, err := tmdb.MovieData("some movie name")
+// For example
 //
-// the metadata is returned in XML format according to TMDB guidelines.
+//	package main
+//
+//	import "fmt"
+//	import "github.com/amahi/go-themoviedb"
+//
+//	func main() {
+//		tmdb := tmdb.Init("dc10d9b00f8a4a777539655342cbb647")
+//		metadata, err := tmdb.MovieData("Despicable Me 2 (2014).mp4")
+//		if err != nil {
+//			fmt.Printf("Error: %s\n", err)
+//		} else {
+//			fmt.Printf("TMDb Metadata: %s\n", metadata)
+//		}
+//	}
+//
+// the metadata is returned in XML format according to TMDb guidelines.
 //
 package tmdb
 
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -28,13 +42,13 @@ import (
 
 const base_url string = "http://api.themoviedb.org/3"
 
-type TMDB struct {
+type TMDb struct {
 	api_key string
 	config  *tmdbConfig
 }
 
-func Init(api_key string) *TMDB {
-	return &TMDB{api_key: api_key}
+func Init(api_key string) *TMDb {
+	return &TMDb{api_key: api_key}
 }
 
 type filtered_output struct {
@@ -120,7 +134,7 @@ type tmdbCrew struct {
 
 // The main call for getting movie data
 // MediaName is the name of the movie information to be retrieved
-func (tmdb *TMDB) MovieData(MediaName string) (string, error) {
+func (tmdb *TMDb) MovieData(MediaName string) (string, error) {
 	var met string
 	results, err := tmdb.searchMovie(MediaName)
 	if err != nil {
@@ -160,14 +174,14 @@ func (tmdb *TMDB) MovieData(MediaName string) (string, error) {
 }
 
 //search on TMDb for TV, persons and Movies with a given name
-func (tmdb *TMDB) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
+func (tmdb *TMDb) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
 	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
 	}
 	if res.StatusCode != 200 {
-		return resp, errors.New("Status Code 200 not recieved from TMDB")
+		return resp, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &resp)
@@ -178,14 +192,14 @@ func (tmdb *TMDB) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
 }
 
 //search on TMDb for Movies with a given name
-func (tmdb *TMDB) searchMovie(MediaName string) (tmdbResponse, error) {
+func (tmdb *TMDb) searchMovie(MediaName string) (tmdbResponse, error) {
 	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
 	}
 	if res.StatusCode != 200 {
-		return resp, errors.New("Status Code 200 not recieved from TMDB")
+		return resp, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &resp)
@@ -196,14 +210,14 @@ func (tmdb *TMDB) searchMovie(MediaName string) (tmdbResponse, error) {
 }
 
 //search on TMDb for Tv Shows with a given name
-func (tmdb *TMDB) searchTmdbTv(MediaName string) (tmdbResponse, error) {
+func (tmdb *TMDb) searchTmdbTv(MediaName string) (tmdbResponse, error) {
 	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + MediaName)
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
 	}
 	if res.StatusCode != 200 {
-		return resp, errors.New("Status Code 200 not recieved from TMDb")
+		return resp, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &resp)
@@ -214,7 +228,7 @@ func (tmdb *TMDB) searchTmdbTv(MediaName string) (tmdbResponse, error) {
 }
 
 //get configurations from TMDb
-func (tmdb *TMDB) getConfig() (*tmdbConfig, error) {
+func (tmdb *TMDb) getConfig() (*tmdbConfig, error) {
 	if tmdb.config.Images.Base_url == "" {
 		res, err := http.Get(base_url + "/configuration?api_key=" + tmdb.api_key)
 		var conf = &tmdbConfig{}
@@ -222,7 +236,7 @@ func (tmdb *TMDB) getConfig() (*tmdbConfig, error) {
 			return conf, err
 		}
 		if res.StatusCode != 200 {
-			return conf, errors.New("Status Code 200 not recieved from TMDb")
+			return conf, error_status(res.StatusCode)
 		}
 		body, err := ioutil.ReadAll(res.Body)
 		err = json.Unmarshal(body, &conf)
@@ -237,14 +251,14 @@ func (tmdb *TMDB) getConfig() (*tmdbConfig, error) {
 }
 
 //get basic information for movie
-func (tmdb *TMDB) getMovieDetails(MediaId string) (movieMetadata, error) {
+func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
 	res, err := http.Get(base_url + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
 	if err != nil {
 		return met, err
 	}
 	if res.StatusCode != 200 {
-		return met, errors.New("Status Code 200 not recieved from TMDb")
+		return met, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &met)
@@ -255,14 +269,14 @@ func (tmdb *TMDB) getMovieDetails(MediaId string) (movieMetadata, error) {
 }
 
 //get credits for movie
-func (tmdb *TMDB) getMovieCredits(MediaId string) (tmdbCredits, error) {
+func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
 	res, err := http.Get(base_url + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
 	if err != nil {
 		return cred, err
 	}
 	if res.StatusCode != 200 {
-		return cred, errors.New("Status Code 200 not recieved from TMDb")
+		return cred, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &cred)
@@ -273,14 +287,14 @@ func (tmdb *TMDB) getMovieCredits(MediaId string) (tmdbCredits, error) {
 }
 
 //get basic information for Tv
-func (tmdb *TMDB) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
+func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 	res, err := http.Get(base_url + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
 	if err != nil {
 		return met, err
 	}
 	if res.StatusCode != 200 {
-		return met, errors.New("Status Code 200 not recieved from TMDb")
+		return met, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &met)
@@ -291,14 +305,14 @@ func (tmdb *TMDB) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 }
 
 //get credits for Tv
-func (tmdb *TMDB) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
+func (tmdb *TMDb) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 	res, err := http.Get(base_url + "/tv/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
 	if err != nil {
 		return cred, err
 	}
 	if res.StatusCode != 200 {
-		return cred, errors.New("Status Code 200 not recieved from TMDb")
+		return cred, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	err = json.Unmarshal(body, &cred)
@@ -310,7 +324,7 @@ func (tmdb *TMDB) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 
 // Transform the simplified movie metadata in JSON format
 // This output is rather arbitrary to our (Amahi's) needs and could be customized a little
-func (tmdb *TMDB) ToJSON(data string) (string, error) {
+func (tmdb *TMDb) ToJSON(data string) (string, error) {
 	var f filtered_output
 	var det movieMetadata
 	err := json.Unmarshal([]byte(data), &det)
@@ -327,4 +341,8 @@ func (tmdb *TMDB) ToJSON(data string) (string, error) {
 		return "", err
 	}
 	return string(metadata), nil
+}
+
+func error_status(status int) error {
+	return errors.New(fmt.Sprintf("Status Code %d received from TMDb", status))
 }
