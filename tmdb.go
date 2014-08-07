@@ -133,10 +133,10 @@ type tmdbCrew struct {
 }
 
 // The main call for getting movie data
-// MediaName is the name of the movie information to be retrieved
-func (tmdb *TMDb) MovieData(MediaName string) (string, error) {
+// media_name is the name of the movie information to be retrieved
+func (tmdb *TMDb) MovieData(media_name string) (string, error) {
 	var met string
-	results, err := tmdb.searchMovie(MediaName)
+	results, err := tmdb.searchMovie(media_name)
 	if err != nil {
 		return met, err
 	}
@@ -174,8 +174,8 @@ func (tmdb *TMDb) MovieData(MediaName string) (string, error) {
 }
 
 // Search on TMDb for TV, persons and Movies with a given name
-func (tmdb *TMDb) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
-	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + MediaName)
+func (tmdb *TMDb) searchTmdbMulti(media_name string) (tmdbResponse, error) {
+	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
@@ -192,8 +192,8 @@ func (tmdb *TMDb) searchTmdbMulti(MediaName string) (tmdbResponse, error) {
 }
 
 // Search on TMDb for Movies with a given name
-func (tmdb *TMDb) searchMovie(MediaName string) (tmdbResponse, error) {
-	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + MediaName)
+func (tmdb *TMDb) searchMovie(media_name string) (tmdbResponse, error) {
+	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
@@ -210,8 +210,8 @@ func (tmdb *TMDb) searchMovie(MediaName string) (tmdbResponse, error) {
 }
 
 // Search on TMDb for Tv Shows with a given name
-func (tmdb *TMDb) searchTmdbTv(MediaName string) (tmdbResponse, error) {
-	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + MediaName)
+func (tmdb *TMDb) searchTmdbTv(media_name string) (tmdbResponse, error) {
+	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	var resp tmdbResponse
 	if err != nil {
 		return resp, err
