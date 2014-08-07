@@ -18,8 +18,8 @@
 //	import "github.com/amahi/go-themoviedb"
 //
 //	func main() {
-//		tmdb := tmdb.Init("dc10d9b00f8a4a777539655342cbb647")
-//		metadata, err := tmdb.MovieData("Despicable Me 2 (2014).mp4")
+//		tmdb := tmdb.Init("your-api-key")
+//		metadata, err := tmdb.MovieData("Pulp Fiction")
 //		if err != nil {
 //			fmt.Printf("Error: %s\n", err)
 //		} else {
@@ -133,8 +133,8 @@ type tmdbCrew struct {
 	Profile_path string
 }
 
-// The main call for getting movie data
-// media_name is the name of the movie information to be retrieved
+// The main call for getting movie data media_name is the (plain) name of
+// the movie information to be retrieved without year or other information
 func (tmdb *TMDb) MovieData(media_name string) (string, error) {
 	var met string
 	results, err := tmdb.searchMovie(media_name)

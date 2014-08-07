@@ -19,11 +19,8 @@ import "fmt"
 import "github.com/amahi/go-themoviedb"
 
 func main() {
-
         tmdb := tmdb.Init("your-api-key")
-
-        metadata, err := tmdb.MovieData("Despicable Me 2 (2014)")
-
+        metadata, err := tmdb.MovieData("Pulp Fiction")
         if err != nil {
                 fmt.Printf("Error: %s\n", err)
         } else {
