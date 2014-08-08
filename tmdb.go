@@ -332,9 +332,12 @@ func (tmdb *TMDb) ToJSON(data string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	f.Title = det.Title
 	f.Release_date = det.Release_date
-	f.Release_date = f.Release_date[0:4]
+	if len(det.Release_date) > 4 {
+		f.Release_date = det.Release_date[0:4]
+	}
 	f.Artwork = det.Config.Images.Base_url + "original" + det.Poster_path
 
 	metadata, err := json.Marshal(f)
