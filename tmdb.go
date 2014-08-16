@@ -146,32 +146,33 @@ func (tmdb *TMDb) MovieData(media_name string) (string, error) {
 	}
 	if results.Results[0].Media_type == "person" {
 		return met, errors.New("Metadata for persons not supported")
-	} else if results.Results[0].Media_type == "tv" {
-		return met, errors.New("Metadata for tv not supported inside a call for movie data")
-	} else {
-
-		movie_details, err := tmdb.getMovieDetails(strconv.Itoa(results.Results[0].Id))
-		if err != nil {
-			return met, err
-		}
-		movie_details.Credits, err = tmdb.getMovieCredits(strconv.Itoa(results.Results[0].Id))
-		if err != nil {
-			return met, err
-		}
-		movie_details.Config, err = tmdb.getConfig()
-		if err != nil {
-			return met, err
-		}
-		movie_details.Id = results.Results[0].Id
-		movie_details.Media_type = "movie"
-
-		metadata, err := json.Marshal(movie_details)
-		if err != nil {
-			return met, err
-		}
-		met = string(metadata)
-		return met, nil
 	}
+	if results.Results[0].Media_type == "tv" {
+		return met, errors.New("Metadata for tv not supported inside a call for movie data")
+	}
+
+	// otherwise
+	movie_details, err := tmdb.getMovieDetails(strconv.Itoa(results.Results[0].Id))
+	if err != nil {
+		return met, err
+	}
+	movie_details.Credits, err = tmdb.getMovieCredits(strconv.Itoa(results.Results[0].Id))
+	if err != nil {
+		return met, err
+	}
+	movie_details.Config, err = tmdb.getConfig()
+	if err != nil {
+		return met, err
+	}
+	movie_details.Id = results.Results[0].Id
+	movie_details.Media_type = "movie"
+
+	metadata, err := json.Marshal(movie_details)
+	if err != nil {
+		return met, err
+	}
+	met = string(metadata)
+	return met, nil
 }
 
 // Search on TMDb for TV, persons and Movies with a given name
