@@ -338,13 +338,29 @@ func (tmdb *TMDb) ToJSON(data string) (string, error) {
 	if len(det.Release_date) > 4 {
 		f.Release_date = det.Release_date[0:4]
 	}
-	f.Artwork = det.Config.Images.Base_url + "original" + det.Poster_path
+	// default width of the poster
+	size := det.poster_size("w154")
+	f.Artwork = det.Config.Images.Base_url + size + det.Poster_path
 
 	metadata, err := json.Marshal(f)
 	if err != nil {
 		return "", err
 	}
 	return string(metadata), nil
+}
+
+// return the requested size, the original if there are none
+// and the first one if the requested size does not exist
+func (md *movieMetadata) poster_size(size string) string {
+	if len(md.Config.Images.Poster_sizes) == 0 {
+		return "original"
+	}
+	for i := range md.Config.Images.Poster_sizes {
+		if md.Config.Images.Poster_sizes[i] == size {
+			return size
+		}
+	}
+	return md.Config.Images.Poster_sizes[0]
 }
 
 func error_status(status int) error {
