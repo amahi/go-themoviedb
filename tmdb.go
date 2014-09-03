@@ -136,49 +136,47 @@ type tmdbCrew struct {
 // The main call for getting movie data media_name is the (plain) name of
 // the movie information to be retrieved without year or other information
 func (tmdb *TMDb) MovieData(media_name string) (string, error) {
-	var met string
 	results, err := tmdb.searchMovie(media_name)
 	if err != nil {
-		return met, err
+		return "", err
 	}
 	if results.Total_results == 0 {
-		return met, errors.New("No results found at TMDb")
+		return "", errors.New("No results found at TMDb")
 	}
 	if results.Results[0].Media_type == "person" {
-		return met, errors.New("Metadata for persons not supported")
+		return "", errors.New("Metadata for persons not supported")
 	}
 	if results.Results[0].Media_type == "tv" {
-		return met, errors.New("Metadata for tv not supported inside a call for movie data")
+		return "", errors.New("Metadata for tv not supported inside a call for movie data")
 	}
 
 	// otherwise
 	movie_details, err := tmdb.getMovieDetails(strconv.Itoa(results.Results[0].Id))
 	if err != nil {
-		return met, err
+		return "", err
 	}
 	movie_details.Credits, err = tmdb.getMovieCredits(strconv.Itoa(results.Results[0].Id))
 	if err != nil {
-		return met, err
+		return "", err
 	}
 	movie_details.Config, err = tmdb.getConfig()
 	if err != nil {
-		return met, err
+		return "", err
 	}
 	movie_details.Id = results.Results[0].Id
 	movie_details.Media_type = "movie"
 
 	metadata, err := json.Marshal(movie_details)
 	if err != nil {
-		return met, err
+		return "", err
 	}
-	met = string(metadata)
-	return met, nil
+	return string(metadata), nil
 }
 
 // Search on TMDb for TV, persons and Movies with a given name
 func (tmdb *TMDb) searchTmdbMulti(media_name string) (tmdbResponse, error) {
-	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	var resp tmdbResponse
+	res, err := http.Get(base_url + "/search/multi?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	if err != nil {
 		return resp, err
 	}
@@ -186,8 +184,10 @@ func (tmdb *TMDb) searchTmdbMulti(media_name string) (tmdbResponse, error) {
 		return resp, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &resp)
 	if err != nil {
+		return tmdbResponse{}, err
+	}
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return tmdbResponse{}, err
 	}
 	return resp, nil
@@ -195,8 +195,8 @@ func (tmdb *TMDb) searchTmdbMulti(media_name string) (tmdbResponse, error) {
 
 // Search on TMDb for Movies with a given name
 func (tmdb *TMDb) searchMovie(media_name string) (tmdbResponse, error) {
-	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	var resp tmdbResponse
+	res, err := http.Get(base_url + "/search/movie?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	if err != nil {
 		return resp, err
 	}
@@ -204,8 +204,10 @@ func (tmdb *TMDb) searchMovie(media_name string) (tmdbResponse, error) {
 		return resp, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &resp)
 	if err != nil {
+		return tmdbResponse{}, err
+	}
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return tmdbResponse{}, err
 	}
 	return resp, nil
@@ -213,8 +215,8 @@ func (tmdb *TMDb) searchMovie(media_name string) (tmdbResponse, error) {
 
 // Search on TMDb for Tv Shows with a given name
 func (tmdb *TMDb) searchTmdbTv(media_name string) (tmdbResponse, error) {
-	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	var resp tmdbResponse
+	res, err := http.Get(base_url + "/search/tv?api_key=" + tmdb.api_key + "&query=" + url.QueryEscape(media_name))
 	if err != nil {
 		return resp, err
 	}
@@ -222,8 +224,10 @@ func (tmdb *TMDb) searchTmdbTv(media_name string) (tmdbResponse, error) {
 		return resp, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &resp)
 	if err != nil {
+		return tmdbResponse{}, err
+	}
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return tmdbResponse{}, err
 	}
 	return resp, nil
@@ -232,8 +236,8 @@ func (tmdb *TMDb) searchTmdbTv(media_name string) (tmdbResponse, error) {
 // Get configurations from TMDb
 func (tmdb *TMDb) getConfig() (*tmdbConfig, error) {
 	if tmdb.config == nil || tmdb.config.Images.Base_url == "" {
-		res, err := http.Get(base_url + "/configuration?api_key=" + tmdb.api_key)
 		var conf = &tmdbConfig{}
+		res, err := http.Get(base_url + "/configuration?api_key=" + tmdb.api_key)
 		if err != nil {
 			return conf, err
 		}
@@ -241,21 +245,21 @@ func (tmdb *TMDb) getConfig() (*tmdbConfig, error) {
 			return conf, error_status(res.StatusCode)
 		}
 		body, err := ioutil.ReadAll(res.Body)
-		err = json.Unmarshal(body, &conf)
 		if err != nil {
 			return &tmdbConfig{}, err
 		}
+		if err := json.Unmarshal(body, &conf); err != nil {
+			return &tmdbConfig{}, err
+		}
 		tmdb.config = conf
-		return tmdb.config, nil
-	} else {
-		return tmdb.config, nil
 	}
+	return tmdb.config, nil
 }
 
 // Get basic information for movie
 func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
-	res, err := http.Get(base_url + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
+	res, err := http.Get(base_url + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
 	if err != nil {
 		return met, err
 	}
@@ -263,8 +267,10 @@ func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
 		return met, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &met)
 	if err != nil {
+		return movieMetadata{}, err
+	}
+	if err := json.Unmarshal(body, &met); err != nil {
 		return movieMetadata{}, err
 	}
 	return met, nil
@@ -272,8 +278,8 @@ func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
 
 // Get credits for movie
 func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
-	res, err := http.Get(base_url + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
+	res, err := http.Get(base_url + "/movie/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	if err != nil {
 		return cred, err
 	}
@@ -281,8 +287,10 @@ func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
 		return cred, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &cred)
 	if err != nil {
+		return tmdbCredits{}, err
+	}
+	if err := json.Unmarshal(body, &cred); err != nil {
 		return tmdbCredits{}, err
 	}
 	return cred, nil
@@ -290,8 +298,8 @@ func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
 
 // Get basic information for Tv
 func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
-	res, err := http.Get(base_url + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
 	var met movieMetadata
+	res, err := http.Get(base_url + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
 	if err != nil {
 		return met, err
 	}
@@ -299,8 +307,10 @@ func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 		return met, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &met)
 	if err != nil {
+		return movieMetadata{}, err
+	}
+	if err := json.Unmarshal(body, &met); err != nil {
 		return movieMetadata{}, err
 	}
 	return met, nil
@@ -308,8 +318,8 @@ func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 
 // Get credits for Tv
 func (tmdb *TMDb) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
-	res, err := http.Get(base_url + "/tv/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	var cred tmdbCredits
+	res, err := http.Get(base_url + "/tv/" + MediaId + "/credits?api_key=" + tmdb.api_key)
 	if err != nil {
 		return cred, err
 	}
@@ -317,8 +327,10 @@ func (tmdb *TMDb) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 		return cred, error_status(res.StatusCode)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	err = json.Unmarshal(body, &cred)
 	if err != nil {
+		return tmdbCredits{}, err
+	}
+	if err := json.Unmarshal(body, &cred); err != nil {
 		return tmdbCredits{}, err
 	}
 	return cred, nil
@@ -329,8 +341,8 @@ func (tmdb *TMDb) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 func (tmdb *TMDb) ToJSON(data string) (string, error) {
 	var f filtered_output
 	var det movieMetadata
-	err := json.Unmarshal([]byte(data), &det)
-	if err != nil {
+
+	if err := json.Unmarshal([]byte(data), &det); err != nil {
 		return "", err
 	}
 
