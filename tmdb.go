@@ -173,8 +173,8 @@ func (tmdb *TMDb) MovieData(media_name string) (string, error) {
 	return string(metadata), nil
 }
 
-// The main call for getting movie data media_name is the (plain) name of
-// the movie information to be retrieved without year or other information
+// The main call for getting tvshow data media_name is the (plain) name of
+// the show information to be retrieved without year or other information
 func (tmdb *TMDb) ShowData(media_name string) (string, error) {
 	results, err := tmdb.searchTmdbTv(media_name)
 	if err != nil {
