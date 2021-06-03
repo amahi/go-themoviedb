@@ -173,6 +173,46 @@ func (tmdb *TMDb) MovieData(media_name string) (string, error) {
 	return string(metadata), nil
 }
 
+// The main call for getting movie data media_name is the (plain) name of
+// the movie information to be retrieved without year or other information
+func (tmdb *TMDb) ShowData(media_name string) (string, error) {
+	results, err := tmdb.searchTmdbTv(media_name)
+	if err != nil {
+		return "", err
+	}
+	if results.Total_results == 0 {
+		return "", errors.New("No results found at TMDb")
+	}
+	if results.Results[0].Media_type == "person" {
+		return "", errors.New("Metadata for persons not supported")
+	}
+	if results.Results[0].Media_type == "movie" {
+		return "", errors.New("Metadata for tv not supported inside a call for movie data")
+	}
+
+	// otherwise
+	movie_details, err := tmdb.getTmdbTvDetails(strconv.Itoa(results.Results[0].Id))
+	if err != nil {
+		return "", err
+	}
+	movie_details.Credits, err = tmdb.getTmdbTvCredits(strconv.Itoa(results.Results[0].Id))
+	if err != nil {
+		return "", err
+	}
+	movie_details.Config, err = tmdb.getConfig()
+	if err != nil {
+		return "", err
+	}
+	movie_details.Id = results.Results[0].Id
+	movie_details.Media_type = "tv"
+
+	metadata, err := json.Marshal(movie_details)
+	if err != nil {
+		return "", err
+	}
+	return string(metadata), nil
+}
+
 // Search on TMDb for TV, persons and Movies with a given name
 func (tmdb *TMDb) searchTmdbMulti(media_name string) (tmdbResponse, error) {
 	var resp tmdbResponse
