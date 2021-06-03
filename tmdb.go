@@ -101,7 +101,7 @@ type imageConfig struct {
 }
 
 // Movie metadata structure
-type movieMetadata struct {
+type MediaMetadata struct {
 	Id            int
 	Media_type    string
 	Backdrop_path string
@@ -297,8 +297,8 @@ func (tmdb *TMDb) getConfig() (*tmdbConfig, error) {
 }
 
 // Get basic information for movie
-func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
-	var met movieMetadata
+func (tmdb *TMDb) getMovieDetails(MediaId string) (MediaMetadata, error) {
+	var met MediaMetadata
 	res, err := http.Get(base_url + "/movie/" + MediaId + "?api_key=" + tmdb.api_key)
 	if err != nil {
 		return met, err
@@ -308,10 +308,10 @@ func (tmdb *TMDb) getMovieDetails(MediaId string) (movieMetadata, error) {
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return movieMetadata{}, err
+		return MediaMetadata{}, err
 	}
 	if err := json.Unmarshal(body, &met); err != nil {
-		return movieMetadata{}, err
+		return MediaMetadata{}, err
 	}
 	return met, nil
 }
@@ -337,8 +337,8 @@ func (tmdb *TMDb) getMovieCredits(MediaId string) (tmdbCredits, error) {
 }
 
 // Get basic information for Tv
-func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
-	var met movieMetadata
+func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (MediaMetadata, error) {
+	var met MediaMetadata
 	res, err := http.Get(base_url + "/tv/" + MediaId + "?api_key=" + tmdb.api_key)
 	if err != nil {
 		return met, err
@@ -348,10 +348,10 @@ func (tmdb *TMDb) getTmdbTvDetails(MediaId string) (movieMetadata, error) {
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return movieMetadata{}, err
+		return MediaMetadata{}, err
 	}
 	if err := json.Unmarshal(body, &met); err != nil {
-		return movieMetadata{}, err
+		return MediaMetadata{}, err
 	}
 	return met, nil
 }
@@ -380,7 +380,7 @@ func (tmdb *TMDb) getTmdbTvCredits(MediaId string) (tmdbCredits, error) {
 // This output is rather arbitrary to our (Amahi's) needs and could be customized a little
 func (tmdb *TMDb) ToJSON(data string) (string, error) {
 	var f filtered_output
-	var det movieMetadata
+	var det MediaMetadata
 
 	if err := json.Unmarshal([]byte(data), &det); err != nil {
 		return "", err
@@ -404,7 +404,7 @@ func (tmdb *TMDb) ToJSON(data string) (string, error) {
 
 // return the requested size, the original if there are none
 // and the first one if the requested size does not exist
-func (md *movieMetadata) poster_size(size string) string {
+func (md *MediaMetadata) poster_size(size string) string {
 	if len(md.Config.Images.Poster_sizes) == 0 {
 		return "original"
 	}
